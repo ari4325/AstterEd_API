@@ -8,14 +8,16 @@ const UserSchema = mongoose.Schema({
   email: {
     type: String,
     required: true,
+    unique: true,
   },
   password: {
     type: String,
-    required: true,
+    // required: false,
   },
   accountAddress: {
     type: String,
     required: true,
+    unique: true,
   },
   createdAt: {
     type: Date,
