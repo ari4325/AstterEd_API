@@ -1,93 +1,19 @@
 const User = require("../models/User");
 
-const {
-  checkIfUserWithAccountAddressExists,
-  checkIfUserWithEmailExists,
-} = require("../utils");
-
-const register = async (req, res) => {
-  try {
-    const { name, email, accountAddress } = req.body;
-    if (checkIfUserWithAccountAddressExists(email)) {
-      return res.json({
-        success: false,
-        errType: "Validation Error",
-        errMessage: "User with similar account address exists",
-      });
-    }
-    if (checkIfUserWithEmailExists(email)) {
-      return res.json({
-        success: false,
-        errType: "Validation Error",
-        errMessage: "User with similar email address exists",
-      });
-    }
-
-    let user = new User({
-      name,
-      email,
-      accountAddress,
-    });
-
-    await user.save();
-
-    req.session.isAuthenticated = true;
-    return res.json({
-      success: true,
-      message: "User Created Successfully",
-    });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      success: false,
-      errorMessage: "Internal Server Error",
-      errorType: "Internal Server Error",
-    });
-  }
-};
-
-const login = async (req, res) => {
-  try {
-    const { accountAddress } = req.headers;
-
-    const user = User.findOne(
-      { accountAddress: accountAddress },
-      { __v: 0, _id: 0 }
-    );
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        errorType: "Bad Request",
-        errorMessage: "User does not exist", // user dne
-      });
-    }
-
-    res.session.isAuthenticated = true;
-
-    return res.status(200).json({
-      success: true,
-      message: "Login Successful",
-    });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      success: false,
-      errorMessage: "Internal Server Error",
-      errorType: "Internal Server Error",
-    });
-  }
-};
+/**
+ * req
+ * @param userId
+ */
 
 const editUser = async (req, res) => {
   // validate if user id is of type MongoDB Object ID
 
   try {
-    const id = req.params.id;
+    const { userId } = req.params.userId;
 
-    let user = User.findOne({ _id: id }, { __v: 0 });
+    let user = User.findOne({ _id: userId }, { __v: 0 });
     if (!user) {
-      return res.json({
+      return res.status(422).json({
         success: false,
         errType: "Invalid User Id",
         errmessage: "Invalid User, Couldn't Edit",
@@ -131,21 +57,26 @@ const editUser = async (req, res) => {
   }
 };
 
+/**
+ * req
+ * @param userId
+ */
+
 const getUser = async (req, res) => {
   // validate if user id is of type MongoDB Object ID
 
   try {
-    const id = req.params.id;
+    const { userId } = req.params;
 
-    let user = User.findOne({ _id: id }, { __v: 0 });
+    let user = await User.findOne({ _id: userId }, { __v: 0 });
     if (user) {
-      return res.json({
+      return res.status(200).json({
         success: true,
         data: user,
       });
     }
 
-    return res.json({
+    return res.status(422).json({
       success: false,
       errType: "Invalid User Id",
       errmessage: "Invalid User",
@@ -160,9 +91,36 @@ const getUser = async (req, res) => {
   }
 };
 
+const searchUser = async (req, res) => {
+  try {
+    if (req.query.search.length < 2) {
+      return res.status(400).json({
+        success: false,
+        errorType: "Bad Request",
+        errorMessage: "Search query length is less than 2",
+      });
+    }
+    let query = new RegExp("^" + req.query.search);
+    let users = await User.find(
+      { name: { $regex: query } },
+      { __v: 0, timestamps: 0, password: 0, email: 0 }
+    );
+    return res.status(200).json({
+      success: true,
+      data: users,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   editUser,
   getUser,
-  login,
-  register,
+  searchUser,
 };

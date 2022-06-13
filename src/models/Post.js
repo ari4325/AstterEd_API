@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Schema.Types;
 
-const VideoSchema = mongoose.Schema({
+const PostSchema = mongoose.Schema({
   originalname: {
     type: String,
     required: true,
@@ -9,31 +10,35 @@ const VideoSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  // timestamp: {
-  //   type: String,
-  //   required: true,
-  // },
   duration: {
     type: Number, // store duration in milliseconds
     // required: true,
   },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
+  postedBy: {
+    type: ObjectId,
     required: true,
     ref: "User",
   },
-  link: {
+  ipfslink: {
     type: String,
     required: true,
   },
-  cid: {
+  ipfscid: {
     type: String,
     required: true,
   },
-  likes: {
-    type: Number,
-    default: 0,
-  },
+  likes: [
+    {
+      type: ObjectId,
+      ref: "User",
+    },
+  ],
+  comments: [
+    {
+      text: String,
+      postedBy: { type: ObjectId, ref: "User" },
+    },
+  ],
   shares: {
     type: Number,
     default: 0,
@@ -50,10 +55,7 @@ const VideoSchema = mongoose.Schema({
       required: true,
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
+  timestamps: true,
 });
 
-module.exports = mongoose.model("Video", VideoSchema);
+module.exports = mongoose.model("Post", PostSchema);

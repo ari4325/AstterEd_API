@@ -1,7 +1,7 @@
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const session = require("express-session");
-const { user, video } = require("../routes/");
+const { user, post } = require("../routes/");
 const MongoDBStore = require("connect-mongodb-session")(session);
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -34,5 +34,5 @@ module.exports = (app) => {
     })
   );
   app.use("/api/user", user);
-  app.use("/api/video", video);
+  app.use("/api/post", post);
 };
