@@ -1,4 +1,4 @@
-const Video = require("../models");
+const Post = require("../models");
 const { Web3Storage, getFilesFromPath } = require("web3.storage");
 require("dotenv").config();
 var fs = require("fs");
@@ -10,10 +10,14 @@ const WEB3STORAGE_TOKEN = process.env.WEB3STORAGE_TOKEN;
  * validation
  * upload file on ipfs using web3.storage
  * remove file from server
- * store video metadata in mongoDB
+ * store post metadata in mongoDB
  */
 
-const uploadVideo = async (req, res) => {
+/**
+ * req
+ */
+
+const uploadPost = async (req, res) => {
   try {
     // multer is a middleware for handling multipart/form-data
     // req.file will contain the file info and location where file is stored
@@ -31,29 +35,29 @@ const uploadVideo = async (req, res) => {
     const pathFiles = await getFilesFromPath(path);
     files.push(...pathFiles);
 
-    const cid = await storage.put(files);
-    const link = "https://" + cid + ".ipfs.dweb.link/" + filename;
+    const ipfscid = await storage.put(files);
+    const ipfslink = "https://" + ipfscid + ".ipfs.dweb.link/" + filename;
 
     // remove file stored on server
     fs.unlinkSync(path);
 
     // store metadata in mongoDB
-    const video = new Video({
+    const post = new Post({
       originalname,
       filename,
       userId,
-      link,
-      cid,
+      ipfslink,
+      ipfscid,
       genre,
       tags,
     });
 
-    await video.save();
+    await post.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Upload Successfull",
-      data: video,
+      data: post,
     });
   } catch (err) {
     console.log(err);
@@ -65,22 +69,27 @@ const uploadVideo = async (req, res) => {
   }
 };
 
-const getVideo = async (req, res) => {
-  try {
-    const id = req.params.id;
+/**
+ * req
+ * @param postId
+ */
 
-    let video = Video.findOne({ _id: id }, { __v: 0 });
-    if (video) {
-      return res.json({
+const getPost = async (req, res) => {
+  try {
+    const id = req.params.postId;
+
+    let post = await Post.findOne({ _id: id }, { __v: 0 });
+    if (post) {
+      return res.status(200).json({
         success: true,
-        data: video,
+        data: post,
       });
     }
 
-    return res.json({
+    return res.status(422).json({
       success: false,
-      errType: "Invalid Video Id",
-      errmessage: "Invalid Video",
+      errType: "Invalid Post Id",
+      errmessage: "Invalid Post",
     });
   } catch (err) {
     console.log(err);
@@ -92,4 +101,4 @@ const getVideo = async (req, res) => {
   }
 };
 
-module.exports = { uploadVideo, getVideo };
+module.exports = { uploadPost, getPost };
