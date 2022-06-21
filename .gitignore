@@ -107,3 +107,7 @@ dist
 src/middlewares/verifySignature.js
 
 tasks.txt
+
+__/
+
+temp/

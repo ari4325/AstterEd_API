@@ -1,17 +1,19 @@
 const ethers = require("ethers");
 
 // verify user signature
-const isValidSign = async (req, res, next) => {
+const requireSign = async (req, res, next) => {
   try {
-    const { message, address, signature } = req.headers;
+    const { message, accountAddress, signature } = req.body;
     const signerAddress = await ethers.utils.verifyMessage(message, signature);
-    if (signerAddress !== address) {
+    if (signerAddress !== accountAddress) {
       return res.status(401).json({
         success: false,
         errorType: "Unverified",
         errorMessage: "Unverified Signature! Access Denied",
       });
     }
+
+    // console.log(req);
 
     next();
   } catch (err) {
@@ -24,8 +26,12 @@ const isValidSign = async (req, res, next) => {
   }
 };
 
-const isAuthenticated = (req, res, next) => {
+const requireLogin = (req, res, next) => {
+  // console.log(req);
   if (req.session.isAuthenticated) {
+    req.user = {
+      id: req.session.userId,
+    };
     next();
   } else {
     return res.status(401).send({
@@ -36,4 +42,4 @@ const isAuthenticated = (req, res, next) => {
   }
 };
 
-module.exports = { isAuthenticated, isValidSign };
+module.exports = { requireLogin, requireSign };

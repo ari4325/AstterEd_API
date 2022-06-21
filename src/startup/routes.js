@@ -1,7 +1,7 @@
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const session = require("express-session");
-const { user, post } = require("../routes/");
+const { user, post, course } = require("../routes/");
 const MongoDBStore = require("connect-mongodb-session")(session);
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -22,17 +22,19 @@ module.exports = (app) => {
   app.use(bodyParser.json());
   app.use(
     session({
+      name: "astterSession",
       secret: SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       store: store,
       cookie: {
-        // httpOnly: true,
-        secure: true,
+        httpOnly: true,
+        secure: false,
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
       },
     })
   );
   app.use("/api/user", user);
   app.use("/api/post", post);
+  app.use("/api/course", course);
 };
