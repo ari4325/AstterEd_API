@@ -8,9 +8,9 @@ const { requireLogin } = require("../middlewares/auth");
 
 router.post(
   "/",
+  requireLogin,
   // change filename accordingly
   upload.single("filename"),
-  requireLogin,
   PostController.uploadPost
 );
 
