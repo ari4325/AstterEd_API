@@ -8,7 +8,7 @@ require("./src/startup/routes")(app); // db connection
 app.get("/", (req, res) => {
   res.json({
     message: "Hello World",
-    creator: "AstterEd"
+    creator: "AstterEd",
   });
 });
 
