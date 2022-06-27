@@ -110,17 +110,25 @@ const getPost = async (req, res) => {
 
 const like = async (req, res) => {
   try {
-    await Post.findByIdAndUpdate(req.params.postId, {
+    let post = await Post.findByIdAndUpdate(req.params.postId, {
       $push: { likes: req.user.id },
     });
+    if (!post) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
     return res.status(200).json({
       success: true,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
@@ -132,17 +140,27 @@ const like = async (req, res) => {
 
 const unlike = async (req, res) => {
   try {
-    await Post.findByIdAndUpdate(req.params.postId, {
+    let post = await Post.findByIdAndUpdate(req.params.postId, {
       $pull: { likes: req.user.id },
     });
+
+    if (!post) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
+
     return res.status(200).json({
       success: true,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
@@ -166,15 +184,22 @@ const addComment = async (req, res) => {
       },
       { new: true }
     );
+    if (!post) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
     return res.status(200).json({
       success: true,
       data: post,
     });
   } catch (err) {
-    return res.status(422).json({
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
@@ -194,15 +219,23 @@ const deleteComment = async (req, res) => {
       },
       { new: true }
     );
+    if (!post) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
+
     return res.status(200).json({
       success: true,
       data: post,
     });
   } catch (err) {
-    return res.status(422).json({
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
