@@ -12,10 +12,6 @@ const UserSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
-    // password: {
-    //   type: String,
-    //   // required: false,
-    // },
     accountAddress: {
       type: String,
       required: true,
@@ -33,6 +29,27 @@ const UserSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    DOB: {
+      type: Date,
+    },
+    subjectPreferences: [
+      {
+        type: String,
+      },
+    ],
+    preferredTimings: [
+      {
+        type: String,
+      },
+    ],
+    profilePicture: {
+      ipfslink: {
+        type: String,
+      },
+      ipfscid: {
+        type: String,
+      },
+    },
   },
   {
     timestamps: true,
