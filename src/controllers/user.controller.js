@@ -1,4 +1,9 @@
 const { User } = require("../models");
+const { Web3Storage, getFilesFromPath } = require("web3.storage");
+require("dotenv").config();
+var fs = require("fs");
+
+const WEB3STORAGE_TOKEN = process.env.WEB3STORAGE_TOKEN;
 
 const {
   checkIfUserWithAccountAddressExists,
@@ -7,7 +12,11 @@ const {
 
 const register = async (req, res) => {
   try {
-    const { name, email, accountAddress } = req.body;
+    const { name, email, accountAddress, DOB } = req.body;
+    let { subjectPreferences, preferredTimings } = req.body;
+    subjectPreferences = subjectPreferences.split(", ");
+    preferredTimings = preferredTimings.split(", ");
+
     let checkUserExists = await checkIfUserWithAccountAddressExists(
       accountAddress
     );
@@ -27,19 +36,40 @@ const register = async (req, res) => {
       });
     }
 
+    const { filename, path } = req.file;
+
+    const storage = new Web3Storage({ token: WEB3STORAGE_TOKEN });
+    const files = [];
+    const pathFiles = await getFilesFromPath(path);
+    files.push(...pathFiles);
+
+    const ipfscid = await storage.put(files);
+    const ipfslink = "https://" + ipfscid + ".ipfs.dweb.link/" + filename;
+
+    // remove file stored on server
+    fs.unlinkSync(path);
+
     let user = new User({
       name,
       email,
       accountAddress,
+      profilePicture: {
+        ipfslink,
+        ipfscid,
+      },
+      DOB,
+      subjectPreferences,
+      preferredTimings,
     });
 
-    await user.save();
+    user = await user.save();
 
     req.session.isAuthenticated = true;
     req.session.userId = user._id;
     return res.status(200).json({
       success: true,
       message: "User Created Successfully",
+      data: user,
     });
   } catch (err) {
     console.log(err);
@@ -104,9 +134,17 @@ const editUser = async (req, res) => {
       });
     }
 
-    const { name, email } = req.body;
+    const { name, email, DOB } = req.body;
+    let { subjectPreferences, preferredTimings } = req.body;
 
-    if (!name && !email) {
+    if (
+      !name &&
+      !email &&
+      !DOB &&
+      !subjectPreferences &&
+      !preferredTimings &&
+      !req.file
+    ) {
       return res.status(400).json({
         success: false,
         errorType: "Bad Request",
@@ -120,12 +158,37 @@ const editUser = async (req, res) => {
     if (email) {
       user.email = email;
     }
-    // don't allow user to change accountAddress
-    // if (accountAddress) {
-    //   user.accountAddress = accountAddress;
-    // }
+    if (DOB) {
+      user.DOB = DOB;
+    }
+    if (subjectPreferences) {
+      subjectPreferences = subjectPreferences.split(", ");
+      user.subjectPreferences = subjectPreferences;
+    }
+    if (preferredTimings) {
+      preferredTimings = preferredTimings.split(", ");
+      user.preferredTimings = preferredTimings;
+    }
 
-    await user.save();
+    if (req.file) {
+      const { filename, path } = req.file;
+
+      const storage = new Web3Storage({ token: WEB3STORAGE_TOKEN });
+      const files = [];
+      const pathFiles = await getFilesFromPath(path);
+      files.push(...pathFiles);
+
+      const ipfscid = await storage.put(files);
+      const ipfslink = "https://" + ipfscid + ".ipfs.dweb.link/" + filename;
+
+      // remove file stored on server
+      fs.unlinkSync(path);
+
+      user.profilePicture.ipfslink = ipfslink;
+      user.profilePicture.ipfscid = ipfscid;
+    }
+
+    user = await user.save();
     return res.status(200).json({
       success: true,
       message: "Update Successful",

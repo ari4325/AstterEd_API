@@ -77,15 +77,23 @@ const addComment = async (req, res) => {
       },
       { new: true }
     );
+    if (!course) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
     return res.status(200).json({
       success: true,
       data: course,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
@@ -99,49 +107,74 @@ const deleteComment = async (req, res) => {
       },
       { new: true }
     );
+    if (!course) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
     return res.status(200).json({
       success: true,
       data: course,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
 
 const like = async (req, res) => {
   try {
-    await Course.findByIdAndUpdate(req.params.courseId, {
+    let course = await Course.findByIdAndUpdate(req.params.courseId, {
       $push: { likes: req.user.id },
     });
+    if (!course) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
+
     return res.status(200).json({
       success: true,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
 
 const unlike = async (req, res) => {
   try {
-    await Course.findByIdAndUpdate(req.params.courseId, {
+    let course = await Course.findByIdAndUpdate(req.params.courseId, {
       $pull: { likes: req.user.id },
     });
+    if (!course) {
+      return res.status(422).json({
+        success: false,
+        errorType: "Unprocessable Entry",
+        errorMessage: "Invalid Id",
+      });
+    }
     return res.status(200).json({
       success: true,
     });
   } catch (err) {
-    return res.status(422).json({
+    console.log(err);
+    return res.status(500).json({
       success: false,
-      errorType: "Unprocessable Entry",
-      errorMessage: "Invalid Id",
+      errorMessage: "Internal Server Error",
+      errorType: "Internal Server Error",
     });
   }
 };
