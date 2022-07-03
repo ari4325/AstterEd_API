@@ -111,3 +111,5 @@ tasks.txt
 __/
 
 temp/
+
+service-account-key.json
