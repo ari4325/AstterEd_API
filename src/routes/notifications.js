@@ -8,7 +8,7 @@ const {
   unsubscribeFromTopic,
 } = require("../startup/firebase");
 
-router.post("/", (req, res) => {
+router.post("/topic", (req, res) => {
   try {
     const {
       notificationTitle,
